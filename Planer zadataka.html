@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BS Shell Mokrice — Planer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#E8291C; --red2:#c0221a; --redlt:#fff3f3;
+  --or:#E65100; --orlt:#fff3e0;
+  --bl:#1565C0; --bllt:#e3f0ff;
+  --gr:#2E7D32; --grlt:#e8f5e9;
+  --pu:#6A1B9A; --pult:#f3e8ff;
+  --bg:#eff1f5; --white:#fff;
+  --b1:#e0e0e0; --b2:#ccc;
+  --t1:#1a1a1a; --t2:#555; --t3:#999;
+  --g1:#f5f5f5; --g2:#e8e8e8;
+  --r:10px; --rs:6px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh}
+
+/* HEADER */
+.hdr{background:var(--red);color:#fff}
+.hdr-in{max-width:1100px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.hdr-title{font-size:18px;font-weight:700}
+.hdr-sub{font-size:11px;opacity:.8;margin-top:1px}
+.hdr-nav{display:flex;align-items:center;gap:6px}
+.nbtn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:6px 13px;border-radius:var(--rs);font-size:13px;cursor:pointer;font-weight:500}
+.nbtn:hover{background:rgba(255,255,255,.3)}
+.mlbl{font-size:15px;font-weight:700;min-width:155px;text-align:center}
+
+.main{max-width:1100px;margin:0 auto;padding:18px 14px}
+
+/* TABS */
+.tabs{display:flex;background:var(--white);border-radius:var(--r);border:1px solid var(--b1);overflow:hidden;margin-bottom:16px}
+.tab{flex:1;padding:10px 4px;text-align:center;font-size:12px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--t2);border-bottom:3px solid transparent}
+.tab.on{color:var(--red);border-bottom-color:var(--red);background:var(--redlt)}
+
+/* CALENDAR */
+.cal-names{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
+.cal-dn{text-align:center;font-size:10px;font-weight:600;color:var(--t3);padding:4px 0;text-transform:uppercase;letter-spacing:.05em}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cel{background:var(--white);border-radius:var(--rs);border:1.5px solid var(--b1);min-height:82px;padding:5px;cursor:pointer;transition:border-color .15s}
+.cel:hover{border-color:var(--red)}
+.cel.empty{background:transparent;border-color:transparent;cursor:default;pointer-events:none}
+.cel.today{border-color:var(--red)}
+.cel.filled{border-color:#bbb}
+.celnum{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:3px}
+.cel.today .celnum{color:var(--red)}
+.sbadge{font-size:9px;padding:1px 4px;border-radius:2px;margin-bottom:1px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbadge.j{background:var(--orlt);color:var(--or)}
+.sbadge.p{background:var(--bllt);color:var(--bl)}
+.sbadge.b{background:var(--grlt);color:var(--gr)}
+.sbadge.rz{background:#e8f0fe;color:#1a56db}
+.pdots{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
+.pdot{width:7px;height:7px;border-radius:50%}
+.cdot{width:11px;height:11px;border-radius:50%;border:1.5px solid;display:inline-block;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+/* OVERLAY */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:12px}
+.ov.open{display:flex}
+.modal{background:var(--white);border-radius:14px;width:100%;max-width:580px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.mhd{padding:14px 18px 10px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--white);z-index:1}
+.mhd-title{font-size:15px;font-weight:700}
+.mclose{background:var(--g1);border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;color:var(--t2);display:flex;align-items:center;justify-content:center}
+.mbody{padding:14px 16px}
+
+/* FORM */
+.flbl{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.finp{width:100%;padding:9px 11px;border-radius:var(--rs);border:1px solid var(--b1);font-size:13px;font-family:inherit}
+.finp:focus{outline:none;border-color:var(--red)}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:var(--rs);border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-p{background:var(--red);color:#fff}.btn-p:hover{background:var(--red2)}
+.btn-g{background:var(--g1);color:var(--t2)}.btn-g:hover{background:var(--g2)}
+.btn-d{background:#fff3f3;color:#c00;border:1px solid #fcc}
+
+/* AVATARS & CHIPS */
+.av{border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.chip{display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:var(--rs);border:2px solid var(--b1);cursor:pointer;font-size:12px;background:var(--white);transition:all .15s;user-select:none}
+.chip.selected{border-color:var(--red);background:var(--redlt)}
+.chip.on-shift{border-color:#aaa;background:#f9f9f9}
+
+/* SMJENA TOGGLE */
+.smj-btn{flex:1;padding:9px;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;border:2px solid var(--b1);background:var(--white);color:var(--t2);transition:all .15s}
+.smj-btn.j.on{border-color:var(--or);background:var(--orlt);color:var(--or)}
+.smj-btn.p.on{border-color:var(--bl);background:var(--bllt);color:var(--bl)}
+
+/* KAT TABS */
+.ktabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.ktab{padding:4px 11px;border-radius:20px;border:1.5px solid var(--b1);background:var(--white);font-size:11px;font-weight:600;cursor:pointer;color:var(--t3);font-family:inherit}
+.ktab.on-cistoca{background:var(--orlt);color:var(--or);border-color:var(--or)}
+.ktab.on-inventura{background:var(--bllt);color:var(--bl);border-color:var(--bl)}
+.ktab.on-dnevni{background:var(--grlt);color:var(--gr);border-color:var(--gr)}
+.ktab.on-mjesecni{background:var(--pult);color:var(--pu);border-color:var(--pu)}
+.ktab.on-ostalo{background:var(--g1);color:var(--t2);border-color:var(--b2)}
+
+/* TASK ROWS */
+.trow{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;background:var(--g1);border:1px solid var(--b1);margin-bottom:4px;cursor:pointer;user-select:none}
+.trow:hover{background:var(--g2)}
+.trow.done{background:var(--grlt);border-color:#a5d6a7}
+.trow.dup{background:#fffde7;border-color:#ffe082}
+.trow input[type=checkbox]{width:15px;height:15px;flex-shrink:0;accent-color:var(--gr);cursor:pointer}
+.trow .task-name{flex:1;font-size:13px}
+.trow .task-name.crossed{text-decoration:line-through;color:var(--t3)}
+.trow .orig{font-size:10px;color:var(--t3);white-space:nowrap}
+.trow .dup-badge{font-size:10px;background:#ffe082;color:#795548;padding:2px 5px;border-radius:3px;white-space:nowrap}
+
+/* ADD TASK ROW */
+.add-task-row{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--b1);background:#fafafa}
+.add-task-row input{flex:1;padding:7px 9px;border-radius:var(--rs);border:1px solid var(--b1);font-size:12px;font-family:inherit}
+.add-task-row input:focus{outline:none;border-color:var(--red)}
+.add-task-row button{background:var(--red);color:#fff;border:none;padding:7px 12px;border-radius:var(--rs);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit}
+
+/* LIST */
+.lcard{background:var(--white);border-radius:var(--r);border:1px solid var(--b1);overflow:hidden;margin-bottom:8px}
+.lhead{padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--b1)}
+.ltasks{padding:8px 14px}
+.ltask{font-size:12px;display:flex;align-items:center;gap:7px;padding:3px 0;color:var(--t2)}
+.ltask::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--b2);flex-shrink:0}
+
+/* RANGE CARDS */
+.rzcard{background:var(--white);border-radius:var(--r);border:1px solid var(--b1);margin-bottom:8px;overflow:hidden}
+.rzhead{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;background:#f0f4ff;border-bottom:1px solid var(--b1)}
+.rzbody{padding:10px 14px;font-size:13px;color:var(--t2)}
+
+/* STAT */
+.scards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.sc{background:var(--white);border-radius:var(--r);border:1px solid var(--b1);padding:14px}
+
+/* UPR */
+.upr-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.upr-card{background:var(--white);border-radius:var(--r);border:1px solid var(--b1);overflow:hidden;margin-bottom:14px}
+.upr-head{padding:10px 14px;border-bottom:1px solid var(--b1);background:#fafafa;font-size:13px;font-weight:700}
+.upr-row{display:flex;align-items:center;gap:7px;padding:8px 12px;border-bottom:1px solid var(--b1);font-size:12px}
+.upr-foot{padding:10px 12px;border-top:1px solid var(--b1);background:#fafafa}
+.sm-btn{border:none;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:11px;font-family:inherit}
+
+.empty{text-align:center;padding:50px 20px;color:var(--t3);font-size:13px}
+.lsekcija{font-size:13px;font-weight:700;color:var(--t2);margin:14px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--b1);text-transform:uppercase;letter-spacing:.04em}
+.lpodsekcija{font-size:12px;font-weight:600;color:var(--t3);margin:8px 0 6px}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:8px;align-items:start}
+.lgrid .lcard,.lgrid .rzcard{margin-bottom:0}
+.print-only{display:none}
+.print-head{margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #000}
+
+@media print{
+  @page{size:A4;margin:10mm}
+  .hdr,.tabs,.no-print{display:none!important}
+  body{background:#fff;font-size:10px}
+  .main{padding:0;max-width:100%}
+  .print-only{display:block!important}
+  /* tri kolone kućica, kompaktno, bez prelamanja preko stranica */
+  .lgrid{grid-template-columns:1fr 1fr 1fr;gap:7px}
+  .lcard,.rzcard{margin-bottom:0;border:1px solid #999;border-radius:5px;page-break-inside:avoid;break-inside:avoid;overflow:hidden}
+  .lhead,.rzhead{padding:4px 6px;gap:4px;flex-wrap:wrap;align-items:center;background:#f2f2f2!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .lhead .av,.rzhead .av{width:20px!important;height:20px!important;font-size:7px!important}
+  .lhead .celnum{min-width:0!important;font-size:11px!important}
+  .lhead>span,.rzhead div div{font-size:9px!important;word-break:break-word}
+  .ltasks,.rzbody{padding:4px 6px}
+  .rzbody{font-size:10px;word-break:break-word}
+  .ltask{font-size:9px;padding:1px 0;word-break:break-word}
+  .lsekcija{margin:9px 0 4px;page-break-after:avoid;border-bottom:1.5px solid #000;font-size:11px}
+  .lpodsekcija{margin:6px 0 4px;page-break-after:avoid}
+  .cdot{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-in">
+    <div>
+      <div class="hdr-title">BS Shell Mokrice</div>
+      <div class="hdr-sub">Planer smjena i zadataka</div>
+    </div>
+    <div class="hdr-nav">
+      <button class="nbtn" onclick="prevM()">&#8592;</button>
+      <span class="mlbl" id="mlbl"></span>
+      <button class="nbtn" onclick="nextM()">&#8594;</button>
+      <button class="nbtn no-print" onclick="window.print()" style="margin-left:6px">🖨️ Ispiši</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="tabs no-print">
+    <button class="tab on"  onclick="goTab('kal')">📅 Kalendar</button>
+    <button class="tab"     onclick="goTab('lst')">📋 Lista</button>
+    <button class="tab"     onclick="goTab('rng')">📆 Rasponi</button>
+    <button class="tab"     onclick="goTab('sta')">👥 Statistika</button>
+    <button class="tab"     onclick="goTab('upr')">⚙️ Postavke</button>
+  </div>
+  <div id="tab-kal">
+    <div class="cal-names" id="calnames"></div>
+    <div class="cal-grid"  id="calgrid"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;font-size:11px;color:var(--t2)">
+      <span style="display:flex;align-items:center;gap:6px"><span class="cdot" style="background:#FDD835;border-color:#C9A800"></span> Jutarnja smjena</span>
+      <span style="display:flex;align-items:center;gap:6px"><span class="cdot" style="background:#1565C0;border-color:#0D3C75"></span> Popodnevna smjena</span>
+      <span style="display:flex;align-items:center;gap:6px"><span class="cdot" style="background:#fff;border-color:#000"></span> Raspon zadatka</span>
+    </div>
+  </div>
+  <div id="tab-lst" style="display:none"><div id="lstV"></div></div>
+  <div id="tab-rng" style="display:none"><div id="rngV"></div></div>
+  <div id="tab-sta" style="display:none"><div id="staV"></div></div>
+  <div id="tab-upr" style="display:none"><div id="uprV"></div></div>
+</div>
+
+<!-- DAY MODAL -->
+<div class="ov" id="ov-day" onclick="if(event.target===this)closeDay()">
+  <div class="modal">
+    <div class="mhd">
+      <div class="mhd-title" id="day-title">Dan</div>
+      <button class="mclose" onclick="closeDay()">✕</button>
+    </div>
+    <div class="mbody" id="day-body"></div>
+  </div>
+</div>
+
+<!-- RANGE MODAL -->
+<div class="ov" id="ov-rng" onclick="if(event.target===this)closeRng()">
+  <div class="modal">
+    <div class="mhd">
+      <div class="mhd-title">Novi raspon zadatka</div>
+      <button class="mclose" onclick="closeRng()">✕</button>
+    </div>
+    <div class="mbody" id="rng-body"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA DEFAULTS
+// ═══════════════════════════════════════════════════════════════════════════
+const DEF_DJ = [
+  {ime:'Lucija Prančić',    boja:'#E8291C'},
+  {ime:'Višnjica Balija',   boja:'#1565C0'},
+  {ime:'Sanja Topolovec',   boja:'#2E7D32'},
+  {ime:'Vlatka Bosak',      boja:'#6A1B9A'},
+  {ime:'Ivana Sinković',    boja:'#E65100'},
+  {ime:'Ruta Matešić',      boja:'#00695C'},
+  {ime:'Gabrijela Kranjčec',boja:'#AD1457'},
+  {ime:'Nadica Vukić',      boja:'#4527A0'},
+];
+const BOJE = ['#E8291C','#1565C0','#2E7D32','#6A1B9A','#E65100','#00695C','#AD1457','#4527A0','#F57C00','#0097A7','#5D4037','#616161'];
+
+const DEF_CISTOCA = [
+  {t:'Rollo kontejneri – čistoća polica', smj:'j'},
+  {t:'Impulsna zona', smj:'j'},
+  {t:'Škrinja Ledo i Stanić', smj:'j'},
+  {t:'LED', smj:'j'},
+  {t:'Frižider', smj:'j'},
+  {t:'Čokolade + keksi', smj:'j'},
+  {t:'Čipsi + grickalice', smj:'j'},
+  {t:'Bočna polica igračke', smj:'j'},
+  {t:'Čistoća čelnih gondola', smj:'j'},
+];
+const DEF_INVENTURA = [
+  {t:'Orbico – samo ulja i autokozmetika', smj:'j'},
+  {t:'Forol ulja – sve', smj:'j'},
+  {t:'Roto – sve', smj:'j'},
+  {t:'Coca Cola – sve', smj:'j'},
+  {t:'Veletabak – sve osim cigareta', smj:'j'},
+  {t:'Roto – sve osim pića', smj:'j'},
+  {t:'Atlantic Trade – sve', smj:'j'},
+  {t:'Alca – sve', smj:'j'},
+  {t:'Filir – sve', smj:'j'},
+  {t:'Fibis – sve osim cigareta', smj:'j'},
+  {t:'Logista – sve', smj:'j'},
+  {t:'Rox – sve', smj:'j'},
+  {t:'Coral A.E. – sve', smj:'j'},
+  {t:'Ledeno doba – sve', smj:'j'},
+  {t:'Ledo – sve', smj:'j'},
+  {t:'Stanić – sve', smj:'j'},
+  {t:'Orbico – sve osim ulja i cigareta', smj:'j'},
+  {t:'Trsat Polo – sve', smj:'j'},
+];
+const DEF_OSTALO = [
+  {t:'Površine na vrhu polica', smj:'j'},
+  {t:'Vitrina za peciva', smj:'j'},
+  {t:'Površina na separeu', smj:'j'},
+  {t:'Gastro inventure', smj:'jp'},
+  {t:'Kontrola inventura i zamjena artikala', smj:'jp'},
+  {t:'Cigarete i žestica – Satelit, Camelot, Interflame, Pogon, Kooltura, WIIP, Auris', smj:'p'},
+];
+
+const DANI    = ['Pon','Uto','Sri','Čet','Pet','Sub','Ned'];
+const MJESECI = ['Siječanj','Veljača','Ožujak','Travanj','Svibanj','Lipanj','Srpanj','Kolovoz','Rujan','Listopad','Studeni','Prosinac'];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE  (all persisted to localStorage)
+// ═══════════════════════════════════════════════════════════════════════════
+function ld(k,d){ try{ return JSON.parse(localStorage.getItem(k))||d; }catch(e){ return d; } }
+function sv(k,v){ localStorage.setItem(k,JSON.stringify(v)); }
+
+let DJ       = ld('mDJ',   DEF_DJ);
+let CISTOCA  = (ld('mCIS',  DEF_CISTOCA)).map(function(t){ return typeof t==='string'?{t:t,smj:'jp'}:t; });
+let INVENTURA= (ld('mINV',  DEF_INVENTURA)).map(function(t){ return typeof t==='string'?{t:t,smj:'jp'}:t; });
+let OSTALO   = (ld('mOST',  DEF_OSTALO)).map(function(t){ return typeof t==='string'?{t:t,smj:'jp'}:t; });
+let RAZ      = ld('mRAZ',  []);  // [{id,task,kat,osoba,od,do}]
+let RAS      = ld('mRAS',  {});  // {key: {jutarnja:{dj:[],odr:{_smj:{task:bool}}}, popodnevna:{...}}}
+
+// Migracija: stari format spremao je odrađene zadatke po djelatniku (odr[ime][task]).
+// Novi format drži ih na razini smjene (odr._smj[task]). Prebacujemo stare podatke
+// u _smj kako se ništa ne izgubi.
+(function migrateRAS(){
+  let changed=false;
+  Object.values(RAS).forEach(function(D){
+    ['jutarnja','popodnevna'].forEach(function(smj){
+      const S=D[smj]; if(!S) return;
+      if(!S.odr) S.odr={};
+      if(!S.odr._smj){ S.odr._smj={}; changed=true; }
+      Object.keys(S.odr).forEach(function(key){
+        if(key==='_smj') return;
+        const m=S.odr[key];
+        if(m&&typeof m==='object'){
+          Object.keys(m).forEach(function(task){ if(m[task]){ S.odr._smj[task]=true; changed=true; } });
+          delete S.odr[key]; changed=true;
+        }
+      });
+    });
+  });
+  if(changed) sv('mRAS',RAS);
+})();
+
+let curY = new Date().getFullYear();
+let curM = new Date().getMonth();
+let curTab = 'kal';
+let lstSort = 'unos'; // 'unos' | 'ime' | 'zaduzenje' | 'datum'
+let lstFiltDj = '';   // '' = svi djelatnici
+let lstFiltKat = '';  // '' = sve klasifikacije
+
+// day drawer state
+let dDay = null, dSmj = 'jutarnja', dDj = null, dKat = 'cistoca';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+function ini(ime){ return ime.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+function djBoja(ime){ return (DJ.find(x=>x.ime===ime)||{boja:'#999'}).boja; }
+function rkey(y,m,d){ return y+'-'+m+'-'+d; }
+function dayData(y,m,d){
+  const k=rkey(y,m,d);
+  if(!RAS[k]) RAS[k]={};
+  const D=RAS[k];
+  if(!D.jutarnja)   D.jutarnja  ={dj:[],odr:{}};
+  if(!D.popodnevna) D.popodnevna={dj:[],odr:{}};
+  return D;
+}
+function smjData(y,m,d,smj){ return dayData(y,m,d)[smj]; }
+
+function razDana(y,m,d){
+  const t=new Date(y,m,d);
+  return RAZ.filter(r=>{
+    const od=new Date(r.od); od.setHours(0,0,0,0);
+    const do2=new Date(r.do); do2.setHours(23,59,59,999);
+    return t>=od && t<=do2;
+  });
+}
+
+function dupTjedan(task,y,m,d){
+  const base=new Date(y,m,d);
+  const dow=(base.getDay()+6)%7;
+  const res=[];
+  for(let i=0;i<7;i++){
+    const dd=new Date(base); dd.setDate(base.getDate()-dow+i);
+    if(dd.getDate()===d&&dd.getMonth()===m&&dd.getFullYear()===y) continue;
+    if(dd.getMonth()!==m||dd.getFullYear()!==y) continue;
+    const D=RAS[rkey(dd.getFullYear(),dd.getMonth(),dd.getDate())];
+    if(!D) continue;
+    for(const s of ['jutarnja','popodnevna']){
+      const odrSmj=D[s]&&D[s].odr&&D[s].odr._smj||{};
+      if(odrSmj[task]) res.push({dan:dd.getDate(),smj:s});
+    }
+  }
+  return res;
+}
+
+function tasksByKat(kat){
+  if(kat==='cistoca')   return CISTOCA;
+  if(kat==='inventura') return INVENTURA;
+  return OSTALO;
+}
+// Migrate old string-based tasks to objects
+function migrateTasks(arr){
+  return arr.map(function(t){ return typeof t==='string'?{t:t,smj:'jp'}:t; });
+}
+function katLabel(kat){ return kat==='cistoca'?'Čistoća':kat==='inventura'?'Inventura':'Ostalo'; }
+function katClass(kat){ return 'on-'+kat; }
+function datStr(s){ const d=new Date(s); return d.getDate()+'.'+(d.getMonth()+1)+'.'+d.getFullYear(); }
+function smjLabel(smj){ return smj==='j'?'J':smj==='p'?'P':'J+P'; }
+function smjColor(smj){ return smj==='j'?'#E65100':smj==='p'?'#1565C0':'#2E7D32'; }
+function smjBg(smj){ return smj==='j'?'#fff3e0':smj==='p'?'#e3f0ff':'#e8f5e9'; }
+function toggleSmj(kat,idx){
+  const lista=kat==='cistoca'?CISTOCA:kat==='inventura'?INVENTURA:OSTALO;
+  const cur=lista[idx].smj||'jp';
+  const next=cur==='j'?'p':cur==='p'?'jp':'j';
+  lista[idx].smj=next;
+  if(kat==='cistoca') sv('mCIS',CISTOCA);
+  else if(kat==='inventura') sv('mINV',INVENTURA);
+  else sv('mOST',OSTALO);
+  renderUpr();
+}
+function toggleSmjDay(kat,idx){
+  const lista=kat==='cistoca'?CISTOCA:kat==='inventura'?INVENTURA:OSTALO;
+  const cur=lista[idx].smj||'jp';
+  const next=cur==='j'?'p':cur==='p'?'jp':'j';
+  lista[idx].smj=next;
+  if(kat==='cistoca') sv('mCIS',CISTOCA);
+  else if(kat==='inventura') sv('mINV',INVENTURA);
+  else sv('mOST',OSTALO);
+  drawDay();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════════════════
+function prevM(){ curM--; if(curM<0){curM=11;curY--;} render(); }
+function nextM(){ curM++; if(curM>11){curM=0;curY++;} render(); }
+
+function goTab(t){
+  curTab=t;
+  ['kal','lst','rng','sta','upr'].forEach((tt,i)=>{
+    document.getElementById('tab-'+tt).style.display=tt===t?'block':'none';
+    document.querySelectorAll('.tab')[i].classList.toggle('on',tt===t);
+  });
+  if(t==='lst') renderLst();
+  if(t==='rng') renderRng();
+  if(t==='sta') renderSta();
+  if(t==='upr') renderUpr();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CALENDAR
+// ═══════════════════════════════════════════════════════════════════════════
+function renderKal(){
+  document.getElementById('mlbl').textContent=MJESECI[curM]+' '+curY;
+  document.getElementById('calnames').innerHTML=DANI.map(d=>'<div class="cal-dn">'+d+'</div>').join('');
+  const prvog=new Date(curY,curM,1);
+  const off=(prvog.getDay()+6)%7;
+  const days=new Date(curY,curM+1,0).getDate();
+  const today=new Date();
+  let h='';
+  for(let i=0;i<off;i++) h+='<div class="cel empty"></div>';
+  for(let d=1;d<=days;d++){
+    const D=RAS[rkey(curY,curM,d)]||{};
+    const hasJ=!!(D.jutarnja&&D.jutarnja.dj&&D.jutarnja.dj.length);
+    const hasP=!!(D.popodnevna&&D.popodnevna.dj&&D.popodnevna.dj.length);
+    const rz=razDana(curY,curM,d);
+    const isT=today.getDate()===d&&today.getMonth()===curM&&today.getFullYear()===curY;
+    let dots='';
+    if(hasJ) dots+='<span class="cdot" style="background:#FDD835;border-color:#C9A800" title="Jutarnja smjena"></span>';
+    if(hasP) dots+='<span class="cdot" style="background:#1565C0;border-color:#0D3C75" title="Popodnevna smjena"></span>';
+    rz.forEach(function(r){ dots+='<span class="cdot" style="background:#fff;border-color:#000" title="Raspon ('+smjLabel(r.smj||'jp')+'): '+esc(r.task)+' — '+esc(r.osoba)+'"></span>'; });
+    h+='<div class="cel'+(isT?' today':'')+(hasJ||hasP||rz.length?' filled':'')+'" onclick="openDay('+d+')">'
+      +'<div class="celnum">'+d+'</div><div class="pdots">'+dots+'</div></div>';
+  }
+  document.getElementById('calgrid').innerHTML=h;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DAY MODAL
+// ═══════════════════════════════════════════════════════════════════════════
+function openDay(d){
+  dDay=d; dSmj='jutarnja'; dDj=null; dKat='cistoca';
+  const datum=new Date(curY,curM,d);
+  const dn=DANI[(datum.getDay()+6)%7];
+  document.getElementById('day-title').textContent=dn+', '+d+'. '+MJESECI[curM]+' '+curY+'.';
+  drawDay();
+  document.getElementById('ov-day').classList.add('open');
+}
+function closeDay(){ document.getElementById('ov-day').classList.remove('open'); renderKal(); if(curTab==='lst')renderLst(); }
+
+function drawDay(){
+  const S=smjData(curY,curM,dDay,dSmj);
+  const rz=razDana(curY,curM,dDay);
+  const smjC=dSmj==='jutarnja'?'var(--or)':'var(--bl)';
+  const smjB=dSmj==='jutarnja'?'var(--orlt)':'var(--bllt)';
+  if(!S.odr) S.odr={};
+  if(!S.odr._smj) S.odr._smj={};
+  const odrSmj=S.odr._smj;
+  const doneCnt=Object.values(odrSmj).filter(Boolean).length;
+  let h='';
+
+  // SMJENA TOGGLE
+  h+='<div style="margin-bottom:14px"><div class="flbl">Smjena</div>'
+    +'<div style="display:flex;gap:7px">'
+    +'<button class="smj-btn j'+(dSmj==="jutarnja"?" on":"")+'" onclick="dSmj=\'jutarnja\';drawDay()">☀️ Jutarnja</button>'
+    +'<button class="smj-btn p'+(dSmj==="popodnevna"?" on":"")+'" onclick="dSmj=\'popodnevna\';drawDay()">🌙 Popodnevna</button>'
+    +'</div></div>';
+
+  // DJELATNICI
+  h+='<div style="margin-bottom:14px"><div class="flbl">Djelatnici na '+(dSmj==='jutarnja'?'jutarnjoj':'popodnevnoj')+' smjeni</div>'
+    +'<div class="dgrid">';
+  DJ.forEach(function(dj){
+    const on=S.dj.includes(dj.ime);
+    h+='<div class="chip'+(on?' on-shift':'')+'" onclick="chipClick(\''+esc(dj.ime)+'\')">'+
+      '<div class="av" style="background:'+dj.boja+';width:26px;height:26px;font-size:9px">'+ini(dj.ime)+'</div>'+
+      '<span style="flex:1;font-weight:'+(on?600:400)+';color:'+(on?'var(--t1)':'var(--t3)')+'">'+dj.ime+'</span>'+
+      (on?'<span style="color:var(--gr);font-size:14px">✓</span>':'')+
+      '</div>';
+  });
+  h+='</div></div>';
+
+  // RASPON (plavo, kao na početku) + ZADUŽENJA po smjenama, podijeljeno po kategoriji
+  if(rz.length){
+    function rangeLine(r,showDate){
+      const rs=r.smj||'jp';
+      return '<div style="font-size:12px;display:flex;align-items:center;gap:7px;margin-bottom:5px">'+
+        '<div class="av" style="background:'+djBoja(r.osoba)+';width:24px;height:24px;font-size:8px">'+ini(r.osoba)+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div><span style="font-weight:700">'+r.osoba+'</span> <span style="color:var(--t2)">— '+r.task+'</span></div>'+
+          (showDate?'<div style="font-size:10px;color:var(--t3)">📅 '+datStr(r.od)+' – '+datStr(r.do)+'</div>':'')+
+        '</div>'+
+        '<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:'+smjBg(rs)+';color:'+smjColor(rs)+';border:1px solid '+smjColor(rs)+';flex-shrink:0">'+smjLabel(rs)+'</span>'+
+        '</div>';
+    }
+    const KAT_RED=['čistoća','inventura','dnevni','ostalo'];
+    function poKategoriji(ranges,showDate,boja){
+      let out='';
+      KAT_RED.forEach(function(k){
+        const arr=ranges.filter(function(r){
+          let rk=r.kat||'ostalo'; if(KAT_RED.indexOf(rk)===-1) rk='ostalo';
+          return rk===k;
+        });
+        if(!arr.length) return;
+        out+='<div style="font-size:10px;font-weight:700;color:'+boja+';text-transform:uppercase;letter-spacing:.03em;margin:7px 0 3px;opacity:.85">'+k.charAt(0).toUpperCase()+k.slice(1)+'</div>'+
+          arr.map(function(r){ return rangeLine(r,showDate); }).join('');
+      });
+      return out;
+    }
+    // 1) Raspon — samo rasponi za OBJE smjene, s datumom, podijeljeno po kategoriji
+    const rzObje=rz.filter(function(r){ return (r.smj||'jp')==='jp'; });
+    if(rzObje.length){
+      h+='<div style="margin-bottom:10px;background:#e8f0fe;border-radius:var(--rs);padding:10px 12px">'+
+        '<div class="flbl" style="color:#1a56db;margin-bottom:2px">📆 Raspon</div>'+
+        poKategoriji(rzObje,true,'#1a56db')+'</div>';
+    }
+    // 2) Zaduženja — jutarnja smjena: rasponi izričito za jutarnju, po kategoriji
+    const rzJ=rz.filter(function(r){ return (r.smj||'jp')==='j'; });
+    if(rzJ.length){
+      h+='<div style="margin-bottom:10px;background:var(--orlt);border-radius:var(--rs);padding:10px 12px">'+
+        '<div class="flbl" style="color:var(--or);margin-bottom:2px">☀️ Zaduženja — jutarnja smjena</div>'+
+        poKategoriji(rzJ,false,'var(--or)')+'</div>';
+    }
+    // 3) Zaduženja — popodnevna smjena: rasponi izričito za popodnevnu, po kategoriji
+    const rzP=rz.filter(function(r){ return (r.smj||'jp')==='p'; });
+    if(rzP.length){
+      h+='<div style="margin-bottom:14px;background:var(--bllt);border-radius:var(--rs);padding:10px 12px">'+
+        '<div class="flbl" style="color:var(--bl);margin-bottom:2px">🌙 Zaduženja — popodnevna smjena</div>'+
+        poKategoriji(rzP,false,'var(--bl)')+'</div>';
+    }
+  }
+
+  // DNEVNI ZADACI — sažetak po smjeni (djelatnici na smjeni + odrađeni zadaci grupirani po kategoriji)
+  // Prikazuje se za OBJE smjene odjednom (neovisno o trenutno odabranom dSmj togglu), isto kao Raspon gore.
+  function dnevniSazetak(smjKey,label,emoji,boja,pozadina){
+    const D=dayData(curY,curM,dDay);
+    const S2=D[smjKey];
+    if(!S2) return '';
+    const dj2=S2.dj||[];
+    const odrSmj2=(S2.odr&&S2.odr._smj)||{};
+    const doneTasks=Object.keys(odrSmj2).filter(function(t){ return odrSmj2[t]; });
+    if(!dj2.length && !doneTasks.length) return '';
+    const KATOVI=[['cistoca','Čistoća'],['inventura','Inventura'],['ostalo','Ostalo']];
+    let body='';
+    if(dj2.length){
+      body+='<div style="font-size:12px;margin-bottom:5px"><span style="font-weight:700">👥 Djelatnici:</span> <span style="color:var(--t2)">'+dj2.join(', ')+'</span></div>';
+    }
+    KATOVI.forEach(function(par){
+      const kat=par[0], klabel=par[1];
+      const nazivi=tasksByKat(kat).map(function(x){ return x.t||x; });
+      const uKat=doneTasks.filter(function(t){ return nazivi.indexOf(t)>-1; });
+      if(!uKat.length) return;
+      body+='<div style="font-size:12px;margin-bottom:3px"><span style="font-weight:700">'+klabel+':</span> <span style="color:var(--t2)">'+uKat.join(', ')+'</span></div>';
+    });
+    if(!body) return '';
+    return '<div style="margin-bottom:10px;background:'+pozadina+';border-radius:var(--rs);padding:10px 12px">'+
+      '<div class="flbl" style="color:'+boja+';margin-bottom:2px">'+emoji+' '+label+' — dnevni zadaci</div>'+
+      body+'</div>';
+  }
+  h+=dnevniSazetak('jutarnja','Jutarnja smjena','☀️','var(--or)','var(--orlt)');
+  h+=dnevniSazetak('popodnevna','Popodnevna smjena','🌙','var(--bl)','var(--bllt)');
+
+  // ZADACI SMJENE
+  h+='<div style="background:var(--white);border-radius:var(--rs);border:1px solid var(--b1);overflow:hidden">'+
+    '<div style="padding:9px 12px;border-bottom:1px solid var(--b1);background:'+smjB+';display:flex;align-items:center;gap:8px">'+
+    '<span style="font-size:13px;font-weight:700;color:'+smjC+'">'+(dSmj==='jutarnja'?'☀️ Zadaci jutarnje smjene':'🌙 Zadaci popodnevne smjene')+'</span>'+
+    '<span style="font-size:11px;color:var(--t3);margin-left:auto">'+doneCnt+' odrađeno</span>'+
+    '</div>'+
+    '<div style="padding:10px 10px 2px">'+
+    '<div class="ktabs">'+
+    '<button class="ktab'+(dKat==='cistoca'?' on-cistoca':'')+'" onclick="dKat=\'cistoca\';drawDay()">Čistoća ('+CISTOCA.length+')</button>'+
+    '<button class="ktab'+(dKat==='inventura'?' on-inventura':'')+'" onclick="dKat=\'inventura\';drawDay()">Inventura ('+INVENTURA.length+')</button>'+
+    '<button class="ktab'+(dKat==='ostalo'?' on-ostalo':'')+'" onclick="dKat=\'ostalo\';drawDay()">Ostalo ('+OSTALO.length+')</button>'+
+    '</div>';
+
+  tasksByKat(dKat).forEach(function(taskObj,tidx){
+    const task=taskObj.t||taskObj;
+    const smj=taskObj.smj||'jp';
+    const chk=!!(odrSmj[task]);
+    const dups=dupTjedan(task,curY,curM,dDay);
+    const safet=esc(task);
+    h+='<div class="trow'+(chk?' done':dups.length?' dup':'')+'" onclick="toggleTaskSmj(\''+safet+'\')">'+
+      '<input type="checkbox" '+(chk?'checked':'')+' onclick="event.stopPropagation();toggleTaskSmj(\''+safet+'\')">'+
+      '<span class="task-name'+(chk?' crossed':'')+'">'+task+'</span>'+
+      (dups.length?'<span class="dup-badge">⚠️ '+dups[0].dan+'. već</span>':'')+
+      '<button onclick="event.stopPropagation();toggleSmjDay(\''+dKat+'\','+tidx+')" style="background:'+smjBg(smj)+';color:'+smjColor(smj)+';border:1px solid '+smjColor(smj)+';border-radius:4px;padding:2px 6px;font-size:10px;font-weight:700;cursor:pointer;flex-shrink:0;min-width:28px">'+smjLabel(smj)+'</button>'+
+      '</div>';
+  });
+
+  h+='</div>'+
+    '<div class="add-task-row">'+
+    '<input type="text" id="new-task" placeholder="Dodaj novi zadatak u '+katLabel(dKat)+'..." onkeydown="if(event.key===\'Enter\')addCustomTask()">'+
+    '<button onclick="addCustomTask()">+ Dodaj</button>'+
+    '</div></div>';
+
+  h+='<div style="display:flex;gap:7px;margin-top:14px">'+
+    '<button class="btn btn-p" onclick="saveDay()">Spremi</button>'+
+    '<button class="btn btn-g" onclick="closeDay()">Zatvori</button>'+
+    '<button class="btn btn-d" onclick="delDay()" style="margin-left:auto">Obriši dan</button>'+
+    '</div>';
+
+  document.getElementById('day-body').innerHTML=h;
+}
+function esc(s){ return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+function chipClick(ime){
+  const S=smjData(curY,curM,dDay,dSmj);
+  if(!S.odr) S.odr={};
+  if(!S.odr._smj) S.odr._smj={};
+  const idx=S.dj.indexOf(ime);
+  if(idx>-1) S.dj.splice(idx,1);
+  else S.dj.push(ime);
+  sv('mRAS',RAS);
+  drawDay();
+}
+
+function toggleTaskSmj(task){
+  const S=smjData(curY,curM,dDay,dSmj);
+  if(!S.odr) S.odr={};
+  if(!S.odr._smj) S.odr._smj={};
+  const newVal=!S.odr._smj[task];
+  if(newVal){
+    const dups=dupTjedan(task,curY,curM,dDay);
+    if(dups.length){
+      const info=dups.map(function(d){ return d.dan+'.('+d.smj+')'; }).join(', ');
+      if(!confirm('⚠️ "'+task+'" već je označen ovaj tjedan:\n'+info+'\n\nŽeliš li svejedno označiti?')) return;
+    }
+  }
+  S.odr._smj[task]=newVal;
+  sv('mRAS',RAS);
+  drawDay();
+}
+
+function addCustomTask(){
+  const inp=document.getElementById('new-task');
+  if(!inp) return;
+  const val=inp.value.trim();
+  if(!val) return;
+  const smjDef=dSmj==='jutarnja'?'j':'p';
+  if(dKat==='cistoca')   { CISTOCA.push({t:val,smj:smjDef});   sv('mCIS',CISTOCA); }
+  if(dKat==='inventura') { INVENTURA.push({t:val,smj:smjDef});  sv('mINV',INVENTURA); }
+  if(dKat==='ostalo')    { OSTALO.push({t:val,smj:smjDef});     sv('mOST',OSTALO); }
+  const S=smjData(curY,curM,dDay,dSmj);
+  if(!S.odr) S.odr={};
+  if(!S.odr._smj) S.odr._smj={};
+  S.odr._smj[val]=true;
+  sv('mRAS',RAS);
+  drawDay();
+}
+
+function saveDay(){ sv('mRAS',RAS); closeDay(); }
+
+function delDay(){
+  if(!confirm('Obriši sve podatke za ovaj dan?')) return;
+  delete RAS[rkey(curY,curM,dDay)];
+  sv('mRAS',RAS);
+  closeDay();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LIST
+// ═══════════════════════════════════════════════════════════════════════════
+function renderLst(){
+  const days=new Date(curY,curM+1,0).getDate();
+  let h='', any=false;
+
+  function getTaskSmj(taskName){
+    const all=[...CISTOCA,...INVENTURA,...OSTALO];
+    const found=all.find(function(x){ return (x.t||x)===taskName; });
+    return found?(found.smj||'jp'):'jp';
+  }
+  function getTaskKat(taskName){
+    if(CISTOCA.find(function(x){ return (x.t||x)===taskName; }))   return 'cistoca';
+    if(INVENTURA.find(function(x){ return (x.t||x)===taskName; })) return 'inventura';
+    return 'ostalo';
+  }
+  function normKat(k){
+    k=(k||'').toString().toLowerCase();
+    if(k.indexOf('čist')===0||k==='cistoca') return 'cistoca';
+    if(k.indexOf('inv')===0) return 'inventura';
+    if(k.indexOf('dnev')===0) return 'dnevni';
+    return 'ostalo';
+  }
+  const katLbl={cistoca:'Čistoća',inventura:'Inventura',dnevni:'Dnevni',ostalo:'Ostalo'};
+  const razKatRed={'čistoća':0,'inventura':1,'dnevni':2,'ostalo':3};
+  function sortRaz(arr){
+    const a=arr.slice();
+    if(lstSort==='ime'){
+      a.sort(function(x,y){ const c=x.osoba.localeCompare(y.osoba,'hr'); return c!==0?c:(x.od<y.od?-1:x.od>y.od?1:0); });
+    } else if(lstSort==='zaduzenje'){
+      a.sort(function(x,y){
+        const kx=razKatRed[x.kat]!=null?razKatRed[x.kat]:99, ky=razKatRed[y.kat]!=null?razKatRed[y.kat]:99;
+        if(kx!==ky) return kx-ky;
+        const c=x.osoba.localeCompare(y.osoba,'hr'); return c!==0?c:(x.od<y.od?-1:x.od>y.od?1:0);
+      });
+    } else if(lstSort==='datum'){
+      a.sort(function(x,y){ return x.od<y.od?-1:x.od>y.od?1:x.osoba.localeCompare(y.osoba,'hr'); });
+    }
+    return a;
+  }
+
+  // KONTROLE (ne ispisuju se)
+  h+='<div class="no-print" style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;padding:12px;background:var(--g1);border-radius:var(--rs)">'
+    +'<div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:var(--t2);font-weight:600">Djelatnik:</span>'
+    +'<select onchange="lstFiltDj=this.value;renderLst()" style="padding:6px 9px;border-radius:var(--rs);border:1px solid var(--b1);font-size:12px;font-family:inherit">'
+    +'<option value=""'+(lstFiltDj===''?' selected':'')+'>Svi</option>'
+    +DJ.map(function(d){ return '<option value="'+esc(d.ime)+'"'+(lstFiltDj===d.ime?' selected':'')+'>'+d.ime+'</option>'; }).join('')
+    +'</select></div>'
+    +'<div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:var(--t2);font-weight:600">Klasifikacija:</span>'
+    +'<select onchange="lstFiltKat=this.value;renderLst()" style="padding:6px 9px;border-radius:var(--rs);border:1px solid var(--b1);font-size:12px;font-family:inherit">'
+    +'<option value=""'+(lstFiltKat===''?' selected':'')+'>Sve</option>'
+    +['cistoca','inventura','dnevni','ostalo'].map(function(k){ return '<option value="'+k+'"'+(lstFiltKat===k?' selected':'')+'>'+katLbl[k]+'</option>'; }).join('')
+    +'</select></div>'
+    +'<div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:var(--t2);font-weight:600">Sortiraj raspone:</span>'
+    +'<select onchange="lstSort=this.value;renderLst()" style="padding:6px 9px;border-radius:var(--rs);border:1px solid var(--b1);font-size:12px;font-family:inherit">'
+    +'<option value="unos"'+(lstSort==='unos'?' selected':'')+'>Redoslijed unosa</option>'
+    +'<option value="ime"'+(lstSort==='ime'?' selected':'')+'>Po imenu i prezimenu</option>'
+    +'<option value="zaduzenje"'+(lstSort==='zaduzenje'?' selected':'')+'>Po zaduženju</option>'
+    +'<option value="datum"'+(lstSort==='datum'?' selected':'')+'>Po datumu</option>'
+    +'</select></div>'
+    +'<button class="btn btn-p" onclick="window.print()" style="font-size:12px;margin-left:auto">🖨️ Ispiši</button>'
+    +'</div>';
+
+  // ZAGLAVLJE ZA ISPIS (vidljivo samo na printu)
+  let filtTxt=[];
+  if(lstFiltDj) filtTxt.push('Djelatnik: '+lstFiltDj);
+  if(lstFiltKat) filtTxt.push('Klasifikacija: '+katLbl[lstFiltKat]);
+  h+='<div class="print-only print-head">'
+    +'<div style="font-size:16px;font-weight:700">BS Shell Mokrice — Lista zadataka</div>'
+    +'<div style="font-size:12px;color:#444">'+MJESECI[curM]+' '+curY+(filtTxt.length?'  •  '+filtTxt.join('  •  '):'')+'</div>'
+    +'</div>';
+
+  // RASPONI — jedna kućica po rasponu (od–do), grupirano po smjeni
+  const activeRaz=sortRaz(RAZ.filter(function(r){
+    const od=new Date(r.od), do2=new Date(r.do);
+    if(!(od<=new Date(curY,curM+1,0)&&do2>=new Date(curY,curM,1))) return false;
+    if(lstFiltDj && r.osoba!==lstFiltDj) return false;
+    if(lstFiltKat && normKat(r.kat)!==lstFiltKat) return false;
+    return true;
+  }));
+  function rzCardHtml(r){
+    const rs=r.smj||'jp';
+    return '<div class="rzcard"><div class="rzhead">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<div class="av" style="background:'+djBoja(r.osoba)+';width:28px;height:28px;font-size:9px">'+ini(r.osoba)+'</div>'
+      +'<div><div style="font-size:13px;font-weight:700">'+r.osoba+'</div>'
+      +'<div style="font-size:11px;color:var(--t3)">'+datStr(r.od)+' – '+datStr(r.do)+'</div></div>'
+      +'</div>'
+      +'<div style="display:flex;gap:5px;align-items:center">'
+      +'<span style="font-size:10px;padding:2px 6px;border-radius:3px;background:'+smjBg(rs)+';color:'+smjColor(rs)+';border:1px solid '+smjColor(rs)+';font-weight:700">'+smjLabel(rs)+'</span>'
+      +'<span style="font-size:11px;background:var(--g1);color:var(--t2);padding:2px 8px;border-radius:3px;font-weight:600;text-transform:capitalize">'+(r.kat||'ostalo')+'</span>'
+      +'</div>'
+      +'</div><div class="rzbody">'+r.task+'</div></div>';
+  }
+  if(activeRaz.length){
+    any=true;
+    h+='<div class="lsekcija">Rasponi</div><div class="lgrid">'+activeRaz.map(rzCardHtml).join('')+'</div>';
+  }
+
+  // DNEVNE SMJENE
+  function dnevnaCardHtml(d,dn,smj,S,done){
+    const col=smj==='jutarnja'?'var(--or)':'var(--bl)';
+    const bg=smj==='jutarnja'?'var(--orlt)':'var(--bllt)';
+    return '<div class="lcard"><div class="lhead">'
+      +'<div class="celnum" style="font-size:14px;min-width:80px">'+dn+', '+d+'.</div>'
+      +'<span style="font-size:11px;padding:3px 8px;border-radius:3px;background:'+bg+';color:'+col+';font-weight:500">'+(smj==='jutarnja'?'Jutarnja':'Popodnevna')+'</span>'
+      +'<span style="font-size:12px;color:var(--t2)">'+S.dj.join(', ')+'</span>'
+      +'</div><div class="ltasks">'
+      +(done.length
+        ?done.map(function(t){
+          const ts=getTaskSmj(t);
+          const tk=getTaskKat(t);
+          return '<div class="ltask">'
+            +'<span style="background:'+smjBg(ts)+';color:'+smjColor(ts)+';border:1px solid '+smjColor(ts)+';border-radius:3px;padding:1px 5px;font-size:9px;font-weight:700;flex-shrink:0">'+smjLabel(ts)+'</span>'
+            +'<span style="background:var(--g1);color:var(--t2);border:1px solid var(--b2);border-radius:3px;padding:1px 5px;font-size:9px;font-weight:600;flex-shrink:0">'+katLbl[tk]+'</span>'
+            +t+'</div>';
+        }).join('')
+        :'<span style="font-size:12px;color:var(--t3);font-style:italic">Nema označenih zadataka</span>')
+      +'</div></div>';
+  }
+  let dnevneH='', imaDnevne=false;
+  for(let d=1;d<=days;d++){
+    const D=RAS[rkey(curY,curM,d)];
+    if(!D) continue;
+    const dn=DANI[(new Date(curY,curM,d).getDay()+6)%7];
+    ['jutarnja','popodnevna'].forEach(function(smj){
+      const S=D[smj];
+      if(!S||!S.dj||!S.dj.length) return;
+      if(lstFiltDj && S.dj.indexOf(lstFiltDj)===-1) return;
+      const odrSmj=(S.odr&&S.odr._smj)||{};
+      let done=Object.keys(odrSmj).filter(function(t){ return odrSmj[t]; });
+      if(lstFiltKat) done=done.filter(function(t){ return getTaskKat(t)===lstFiltKat; });
+      if(lstFiltKat && !done.length) return;
+      dnevneH+=dnevnaCardHtml(d,dn,smj,S,done);
+      imaDnevne=true; any=true;
+    });
+  }
+  if(imaDnevne) h+='<div class="lsekcija">Dnevne smjene</div><div class="lgrid">'+dnevneH+'</div>';
+
+  document.getElementById('lstV').innerHTML=any?h:'<div class="empty">Nema rezultata za zadane filtere u '+MJESECI[curM]+'.</div>';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RASPONI
+// ═══════════════════════════════════════════════════════════════════════════
+function renderRng(){
+  const y=curY, m=curM;
+  const active=RAZ.filter(function(r){
+    const od=new Date(r.od), do2=new Date(r.do);
+    return od<=new Date(y,m+1,0)&&do2>=new Date(y,m,1);
+  });
+  let h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+    +'<div style="font-size:14px;font-weight:700">Rasponi — '+MJESECI[m]+' '+y+'</div>'
+    +'<button class="btn btn-p" onclick="openRng()">+ Novi raspon</button>'
+    +'</div>';
+  if(!active.length){
+    h+='<div class="empty">Nema raspon zadataka za ovaj mjesec.</div>';
+  } else {
+    active.forEach(function(r,i){
+      h+='<div class="rzcard"><div class="rzhead">'
+        +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<div class="av" style="background:'+djBoja(r.osoba)+';width:30px;height:30px;font-size:10px">'+ini(r.osoba)+'</div>'
+        +'<div><div style="font-size:13px;font-weight:700">'+r.osoba+'</div>'
+        +'<div style="font-size:11px;color:var(--t3)">'+datStr(r.od)+' – '+datStr(r.do)+'</div></div>'
+        +'</div>'
+        +'<div style="display:flex;gap:6px;align-items:center">'
+        +'<span style="font-size:10px;padding:2px 6px;border-radius:3px;background:'+smjBg(r.smj||'jp')+';color:'+smjColor(r.smj||'jp')+';border:1px solid '+smjColor(r.smj||'jp')+';font-weight:700">'+smjLabel(r.smj||'jp')+'</span>'
+        +'<span style="font-size:11px;padding:2px 7px;border-radius:3px;background:var(--g1);color:var(--t2)">'+r.kat+'</span>'
+        +'<button class="sm-btn" style="background:#fff3f3;border:1px solid #fcc;color:#c00" onclick="delRaz('+i+')">Makni</button>'
+        +'</div></div>'
+        +'<div class="rzbody">'+r.task+'</div></div>';
+    });
+  }
+  document.getElementById('rngV').innerHTML=h;
+}
+
+function tasksForKat(k){
+  if(k==='čistoća')   return CISTOCA;
+  if(k==='inventura') return INVENTURA;
+  return OSTALO; // 'dnevni' i 'ostalo'
+}
+function updRzTasks(){
+  const k=document.getElementById('rz-k').value;
+  const list=tasksForKat(k);
+  document.getElementById('rz-dl').innerHTML=list.map(function(t){ return '<option value="'+esc(t.t||t)+'">'; }).join('');
+  document.getElementById('rz-t').value='';
+}
+function openRng(){
+  const pad=function(n){ return String(n).padStart(2,'0'); };
+  const defOd=curY+'-'+pad(curM+1)+'-01';
+  const defDo=curY+'-'+pad(curM+1)+'-'+new Date(curY,curM+1,0).getDate();
+  document.getElementById('rng-body').innerHTML=
+    '<div style="margin-bottom:12px"><div class="flbl">1. Kategorija</div>'
+    +'<select id="rz-k" class="finp" onchange="updRzTasks()"><option>čistoća</option><option>inventura</option><option>dnevni</option><option>ostalo</option></select></div>'
+    +'<div style="margin-bottom:12px"><div class="flbl">2. Zadatak</div>'
+    +'<input id="rz-t" list="rz-dl" class="finp" placeholder="Odaberi iz kategorije ili upiši...">'
+    +'<datalist id="rz-dl"></datalist></div>'
+    +'<div style="margin-bottom:12px"><div class="flbl">3. Djelatnik</div>'
+    +'<select id="rz-o" class="finp">'+DJ.map(function(d){ return '<option>'+d.ime+'</option>'; }).join('')+'</select></div>'
+    +'<div style="margin-bottom:12px"><div class="flbl">4. Smjena</div>'
+    +'<select id="rz-smj" class="finp"><option value="jp">Obje (jutarnja + popodnevna)</option><option value="j">Jutarnja</option><option value="p">Popodnevna</option></select></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">'
+    +'<div><div class="flbl">5. Od</div><input id="rz-od" type="date" value="'+defOd+'" class="finp"></div>'
+    +'<div><div class="flbl">Do</div><input id="rz-do" type="date" value="'+defDo+'" class="finp"></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button class="btn btn-p" onclick="saveRaz()" style="flex:1">Spremi</button>'
+    +'<button class="btn btn-g" onclick="closeRng()">Odustani</button>'
+    +'</div>';
+  updRzTasks(); // popuni zadatke za početnu kategoriju
+  document.getElementById('ov-rng').classList.add('open');
+}
+function closeRng(){ document.getElementById('ov-rng').classList.remove('open'); }
+
+function saveRaz(){
+  const t=document.getElementById('rz-t').value.trim();
+  const o=document.getElementById('rz-o').value;
+  const k=document.getElementById('rz-k').value;
+  const smj=document.getElementById('rz-smj').value;
+  const od=document.getElementById('rz-od').value;
+  const do2=document.getElementById('rz-do').value;
+  if(!t||!od||!do2){ alert('Popuni sve podatke.'); return; }
+  if(od>do2){ alert('"Od" mora biti prije "Do".'); return; }
+  RAZ.push({id:Date.now(),task:t,osoba:o,kat:k,smj:smj,od,do:do2});
+  sv('mRAZ',RAZ);
+  closeRng();
+  render();
+}
+
+function delRaz(i){
+  if(!confirm('Makni raspon "'+RAZ[i].task+'"?')) return;
+  RAZ.splice(i,1);
+  sv('mRAZ',RAZ);
+  renderRng();
+  renderKal();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATISTIKA
+// ═══════════════════════════════════════════════════════════════════════════
+function renderSta(){
+  const days=new Date(curY,curM+1,0).getDate();
+  const stat={};
+  DJ.forEach(function(d){ stat[d.ime]={j:0,p:0,done:0}; });
+  for(let d=1;d<=days;d++){
+    const D=RAS[rkey(curY,curM,d)]||{};
+    ['jutarnja','popodnevna'].forEach(function(smj){
+      const S=D[smj]; if(!S) return;
+      const doneShift=Object.values(S.odr&&S.odr._smj||{}).filter(Boolean).length;
+      (S.dj||[]).forEach(function(ime){
+        if(!stat[ime]) return;
+        smj==='jutarnja'?stat[ime].j++:stat[ime].p++;
+        stat[ime].done+=doneShift;
+      });
+    });
+  }
+  document.getElementById('staV').innerHTML='<div class="scards">'
+    +DJ.map(function(d){
+      const s=stat[d.ime]||{j:0,p:0,done:0};
+      return '<div class="sc">'
+        +'<div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">'
+        +'<div class="av" style="background:'+d.boja+';width:34px;height:34px;font-size:11px">'+ini(d.ime)+'</div>'
+        +'<div><div style="font-size:13px;font-weight:600">'+d.ime+'</div>'
+        +'<div style="font-size:11px;color:var(--t3)">'+(s.j+s.p)+' smjena · '+s.done+' zadataka ✓</div></div>'
+        +'</div>'
+        +'<div style="display:flex;gap:6px">'
+        +'<div style="flex:1;background:var(--orlt);border-radius:5px;padding:7px;text-align:center">'
+        +'<div style="font-size:18px;font-weight:700;color:var(--or)">'+s.j+'</div>'
+        +'<div style="font-size:10px;color:var(--or)">jutarnja</div></div>'
+        +'<div style="flex:1;background:var(--bllt);border-radius:5px;padding:7px;text-align:center">'
+        +'<div style="font-size:18px;font-weight:700;color:var(--bl)">'+s.p+'</div>'
+        +'<div style="font-size:10px;color:var(--bl)">popodnevna</div></div>'
+        +'</div></div>';
+    }).join('')+'</div>';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POSTAVKE
+// ═══════════════════════════════════════════════════════════════════════════
+function renderUpr(){
+  function taskSection(label, list, saveKey, addId, listId){
+    return '<div class="upr-card">'
+      +'<div class="upr-head">'+label+' <span style="font-size:11px;color:var(--t3);font-weight:400">('+list.length+')</span></div>'
+      +'<div id="'+listId+'">'
+      +list.map(function(t,i){
+        const naziv=t.t||t; const smj=t.smj||'jp';
+        return '<div class="upr-row"><span style="flex:1">'+naziv+'</span>'
+          +'<button class="sm-btn" title="Promijeni smjenu" style="background:'+smjBg(smj)+';color:'+smjColor(smj)+';border:1px solid '+smjColor(smj)+';font-weight:700;min-width:34px" onclick="toggleSmj(\''+saveKey+'\','+i+')">'+smjLabel(smj)+'</button>'
+          +'<button class="sm-btn" style="background:#fff3f3;border:1px solid #fcc;color:#c00" onclick="delTask(\''+saveKey+'\','+i+')">✕</button></div>';
+      }).join('')
+      +'</div>'
+      +'<div class="upr-foot" style="display:flex;gap:6px">'
+      +'<input id="'+addId+'" type="text" placeholder="Novi zadatak..." style="flex:1;padding:7px 9px;border-radius:var(--rs);border:1px solid var(--b1);font-size:12px;font-family:inherit" onkeydown="if(event.key===\'Enter\')addTask(\''+saveKey+'\')">'
+      +'<select id="'+addId+'-smj" style="padding:6px;border-radius:var(--rs);border:1px solid var(--b1);font-size:12px;font-family:inherit"><option value="j">J</option><option value="p">P</option><option value="jp" selected>J+P</option></select>'
+      +'<button class="btn btn-p" onclick="addTask(\''+saveKey+'\')" style="padding:7px 11px;font-size:12px">+ Dodaj</button>'
+      +'</div></div>';
+  }
+
+  document.getElementById('uprV').innerHTML=
+    '<div class="upr-grid">'
+
+    // LEFT: djelatnici
+    +'<div><div class="upr-card">'
+    +'<div class="upr-head">👥 Djelatnici</div>'
+    +DJ.map(function(d,i){
+      return '<div class="upr-row" id="djrow-'+i+'">'
+        +'<div class="av" style="background:'+d.boja+';width:28px;height:28px;font-size:9px">'+ini(d.ime)+'</div>'
+        +'<span style="flex:1;font-size:13px">'+d.ime+'</span>'
+        +'<button class="sm-btn" style="background:var(--g1);border:1px solid var(--b1)" onclick="editDj('+i+')">Uredi</button>'
+        +'<button class="sm-btn" style="background:#fff3f3;border:1px solid #fcc;color:#c00" onclick="delDj('+i+')">✕</button>'
+        +'</div>';
+    }).join('')
+    +'<div class="upr-foot" style="display:flex;gap:6px">'
+    +'<input id="new-dj" type="text" placeholder="Ime i prezime..." style="flex:1;padding:7px 9px;border-radius:var(--rs);border:1px solid var(--b1);font-size:12px;font-family:inherit" onkeydown="if(event.key===\'Enter\')addDj()">'
+    +'<button class="btn btn-p" onclick="addDj()" style="padding:7px 11px;font-size:12px">+ Dodaj</button>'
+    +'</div></div></div>'
+
+    // RIGHT: tasks
+    +'<div>'
+    +taskSection('🧹 Čistoća', CISTOCA, 'cistoca', 'add-cis', 'list-cis')
+    +taskSection('📦 Inventura', INVENTURA, 'inventura', 'add-inv', 'list-inv')
+    +taskSection('📋 Ostalo', OSTALO, 'ostalo', 'add-ost', 'list-ost')
+    +'</div>'
+    +'</div>'
+
+    // IZVOZ / UVOZ
+    +'<div class="upr-card" style="margin-top:4px">'
+    +'<div class="upr-head">💾 Sigurnosna kopija (izvoz / uvoz)</div>'
+    +'<div style="padding:12px 14px;font-size:12px;color:var(--t2);line-height:1.5">'
+    +'Podaci se čuvaju samo u ovom browseru. Izvezi ih u datoteku za sigurnosnu kopiju ili prijenos na drugi uređaj, pa ih tamo uvezi.'
+    +'</div>'
+    +'<div class="upr-foot" style="display:flex;gap:8px;flex-wrap:wrap">'
+    +'<button class="btn btn-p" onclick="izvozPodataka()" style="font-size:12px">⬇️ Izvezi podatke</button>'
+    +'<button class="btn btn-g" onclick="document.getElementById(\'uvoz-file\').click()" style="font-size:12px">⬆️ Uvezi podatke</button>'
+    +'<input id="uvoz-file" type="file" accept="application/json,.json" style="display:none" onchange="uvozPodataka(event)">'
+    +'</div></div>';
+}
+
+const BACKUP_KEYS=['mDJ','mCIS','mINV','mOST','mRAZ','mRAS'];
+
+function izvozPodataka(){
+  const data={ _app:'BS Shell Mokrice Planer', _verzija:1, _datum:new Date().toISOString() };
+  BACKUP_KEYS.forEach(function(k){ data[k]=ld(k,null); });
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const d=new Date();
+  const pad=function(n){ return String(n).padStart(2,'0'); };
+  a.href=url;
+  a.download='shell-mokrice-backup-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'.json';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+function uvozPodataka(ev){
+  const file=ev.target.files&&ev.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(){
+    let data;
+    try{ data=JSON.parse(reader.result); }
+    catch(e){ alert('Datoteka nije ispravna (nije valjani JSON).'); ev.target.value=''; return; }
+    if(!data||typeof data!=='object'||!data.mDJ){
+      alert('Ovo ne izgleda kao sigurnosna kopija ovog planera.'); ev.target.value=''; return;
+    }
+    if(!confirm('Uvoz će zamijeniti SVE trenutne podatke u ovom browseru. Nastaviti?')){ ev.target.value=''; return; }
+    BACKUP_KEYS.forEach(function(k){ if(k in data && data[k]!=null) localStorage.setItem(k,JSON.stringify(data[k])); });
+    // ponovno učitaj stanje
+    DJ        = ld('mDJ',   DEF_DJ);
+    CISTOCA   = migrateTasks(ld('mCIS', DEF_CISTOCA));
+    INVENTURA = migrateTasks(ld('mINV', DEF_INVENTURA));
+    OSTALO    = migrateTasks(ld('mOST', DEF_OSTALO));
+    RAZ       = ld('mRAZ',  []);
+    RAS       = ld('mRAS',  {});
+    ev.target.value='';
+    render();
+    alert('Podaci su uspješno uvezeni.');
+  };
+  reader.readAsText(file);
+}
+
+function addDj(){
+  const inp=document.getElementById('new-dj');
+  const ime=inp.value.trim(); if(!ime) return;
+  DJ.push({ime, boja:BOJE[DJ.length%BOJE.length]});
+  sv('mDJ',DJ); renderUpr();
+}
+function delDj(i){
+  if(!confirm('Makni '+DJ[i].ime+'?')) return;
+  DJ.splice(i,1); sv('mDJ',DJ); renderUpr();
+}
+function editDj(i){
+  const d=DJ[i];
+  const row=document.getElementById('djrow-'+i);
+  row.innerHTML='<div class="av" style="background:'+d.boja+';width:28px;height:28px;font-size:9px">'+ini(d.ime)+'</div>'
+    +'<input id="dj-ime" type="text" value="'+d.ime+'" style="flex:1;padding:6px 8px;border-radius:4px;border:1px solid var(--b1);font-size:12px;font-family:inherit" onkeydown="if(event.key===\'Enter\')saveDj('+i+')">'
+    +'<select id="dj-boja" style="padding:5px;border-radius:4px;border:1px solid var(--b1);font-size:11px">'+BOJE.map(function(b){ return '<option value="'+b+'" '+(b===d.boja?'selected':'')+'>'+b+'</option>'; }).join('')+'</select>'
+    +'<button class="sm-btn" style="background:var(--red);color:#fff;border:none" onclick="saveDj('+i+')">OK</button>'
+    +'<button class="sm-btn" style="background:var(--g1);border:1px solid var(--b1)" onclick="renderUpr()">✕</button>';
+}
+function saveDj(i){
+  const novoIme=document.getElementById('dj-ime').value.trim();
+  const novaBoja=document.getElementById('dj-boja').value;
+  if(!novoIme) return;
+  const staro=DJ[i].ime;
+  DJ[i]={ime:novoIme,boja:novaBoja};
+  if(staro!==novoIme){
+    Object.values(RAS).forEach(function(D){
+      ['jutarnja','popodnevna'].forEach(function(smj){
+        const S=D[smj]; if(!S) return;
+        S.dj=S.dj.map(function(n){ return n===staro?novoIme:n; });
+        if(S.odr&&S.odr[staro]){ S.odr[novoIme]=S.odr[staro]; delete S.odr[staro]; }
+      });
+    });
+    RAZ.forEach(function(r){ if(r.osoba===staro) r.osoba=novoIme; });
+    sv('mRAS',RAS); sv('mRAZ',RAZ);
+  }
+  sv('mDJ',DJ); renderUpr(); render();
+}
+
+function addTask(kat){
+  const id='add-'+kat.slice(0,3);
+  const inp=document.getElementById(id);
+  if(!inp) return;
+  const val=inp.value.trim(); if(!val) return;
+  const smjEl=document.getElementById(id+'-smj');
+  const smj=smjEl?smjEl.value:'jp';
+  const obj={t:val,smj:smj};
+  if(kat==='cistoca')   { CISTOCA.push(obj);  sv('mCIS',CISTOCA); }
+  if(kat==='inventura') { INVENTURA.push(obj); sv('mINV',INVENTURA); }
+  if(kat==='ostalo')    { OSTALO.push(obj);    sv('mOST',OSTALO); }
+  renderUpr();
+}
+function delTask(kat,i){
+  if(kat==='cistoca')   { if(!confirm('Makni "'+(CISTOCA[i].t||CISTOCA[i])+'"?')) return; CISTOCA.splice(i,1);  sv('mCIS',CISTOCA); }
+  if(kat==='inventura') { if(!confirm('Makni "'+(INVENTURA[i].t||INVENTURA[i])+'"?')) return; INVENTURA.splice(i,1); sv('mINV',INVENTURA); }
+  if(kat==='ostalo')    { if(!confirm('Makni "'+(OSTALO[i].t||OSTALO[i])+'"?')) return; OSTALO.splice(i,1);    sv('mOST',OSTALO); }
+  renderUpr();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN RENDER
+// ═══════════════════════════════════════════════════════════════════════════
+function render(){
+  renderKal();
+  if(curTab==='lst') renderLst();
+  if(curTab==='rng') renderRng();
+  if(curTab==='sta') renderSta();
+  if(curTab==='upr') renderUpr();
+}
+render();
+</script>
+</body>
+</html>
